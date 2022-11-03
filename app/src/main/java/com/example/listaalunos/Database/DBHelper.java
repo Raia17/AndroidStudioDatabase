@@ -22,14 +22,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private SQLiteDatabase _dbContext;
 
-    private List<DBStructure> dbStructures = new ArrayList<>();
-
+    // MODELS
     public DBStructure<User> Users;
 
     public DBHelper(@Nullable Context context)
     {
         super(context, DBConfig._dbName, DBConfig._factory, DBConfig._version);
-        Users = new DBStructure<>(context);
     }
 
     @Override
@@ -37,10 +35,19 @@ public class DBHelper extends SQLiteOpenHelper {
     {
         _dbContext = sqLiteDatabase;
 
+        // MODELS
+        Users = new DBStructure<>();
+
+        // MODELS LIST
+        DBStructure<Objects>[] dbStructures = new DBStructure[] {
+                Users,
+        };
+
         for(DBStructure table : dbStructures) {
             String tableName = table.getClass().getGenericSuperclass().getClass().getName();
             Field[] fields = table.getClass().getGenericSuperclass().getClass().getFields();
             buildTable(tableName, fields);
+            table.queryAll();
         }
     }
 

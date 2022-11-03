@@ -1,6 +1,7 @@
 package com.example.listaalunos.Database;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,23 +17,19 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class DBStructure<T> extends DBHelper
+public class DBStructure<T>
 {
         private List<T> TList;
         private String TName = getClass().getGenericSuperclass().getClass().getName();
         private Field[] TFields = getClass().getGenericSuperclass().getClass().getFields();
 
-        private Context context;
+        private Context context = DBContext.getContext();
+        private DBHelper _dbContext = new DBHelper(context);
 
-        public DBStructure(Context context) {
-                super(context);
-                this.context = context;
-                getAll();
-        }
 
         // Get All
-        public List<T> getAll() {
-                Cursor data = select(TName, TFields);
+        public List<T> queryAll() {
+                Cursor data = _dbContext.select(TName, TFields);
                 for (data.moveToFirst(); !data.isAfterLast(); data.moveToNext()) {
                         Class classType = DBStructure.class.getGenericSuperclass().getClass();
                         Class<T> model;
@@ -46,6 +43,11 @@ public class DBStructure<T> extends DBHelper
         }
 
 
+        // Get All
+        public List<T> getAll() {
+                return TList;
+        }
+
         // Select where
         public List<T> where(Predicate<T> lambda) {
                 List<T> returnList = new ArrayList<>();
@@ -56,5 +58,15 @@ public class DBStructure<T> extends DBHelper
                         }
                 }
                 return returnList;
+        }
+
+        public boolean insert(T model) {
+                ContentValues cv = new ContentValues();
+                for(Field field : model.getClass().getFields())
+                {
+                        cv.put(field.getName(), field.toString());
+                }
+                boolean result = _dbContext.insert(TName, cv);
+                return result;
         }
 }
